@@ -1,0 +1,12 @@
+[
+  {"city_id":1,"name":"Ciudad de México","latitude":19.43,"longitude":-99.13,"region":"Latam","segment":"urban"},
+  {"city_id":2,"name":"Madrid","latitude":40.41,"longitude":-3.70,"region":"Europa","segment":"premium"},
+  {"city_id":3,"name":"Bogotá","latitude":4.61,"longitude":-74.08,"region":"Latam","segment":"urban"},
+  {"city_id":4,"name":"Lima","latitude":-12.04,"longitude":-77.02,"region":"Latam","segment":"coastal"},
+  {"city_id":5,"name":"Buenos Aires","latitude":-34.60,"longitude":-58.38,"region":"Latam","segment":"premium"},
+  {"city_id":6,"name":"Santiago","latitude":-33.45,"longitude":-70.67,"region":"Latam","segment":"urban"},
+  {"city_id":7,"name":"São Paulo","latitude":-23.55,"longitude":-46.63,"region":"Latam","segment":"premium"},
+  {"city_id":8,"name":"Lisboa","latitude":38.72,"longitude":-9.14,"region":"Europa","segment":"coastal"},
+  {"city_id":9,"name":"Miami","latitude":25.76,"longitude":-80.19,"region":"Norte","segment":"premium"},
+  {"city_id":10,"name":"La Paz","latitude":-16.50,"longitude":-68.15,"region":"Latam","segment":"altitude"}
+]
