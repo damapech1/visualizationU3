@@ -1,4 +1,4 @@
-import json, json, time, requests, uuid
+import json, time, requests, uuid, sys
 from datetime import datetime
 from confluent_kafka import Producer
 from dotenv import load_dotenv
@@ -9,7 +9,12 @@ load_dotenv()
 TOPIC = os.getenv("KAFKA_TOPIC")
 BOOTSTRAP = os.getenv("KAFKA_BOOTSTRAP_SERVERS")
 
-with open("data/cities.json") as f:
+# Fix path to cities.json using absolute path resolution
+# Script is in /opt/airflow/producers, data is in /opt/airflow/data
+current_dir = os.path.dirname(os.path.abspath(__file__))
+cities_path = os.path.join(current_dir, '../data/cities.json')
+
+with open(cities_path) as f:
     cities = json.load(f)
 
 p = Producer({'bootstrap.servers': BOOTSTRAP})
@@ -60,4 +65,10 @@ while True:
         print(f"{city['name']}: {event['temperature_2m']}°C")
     
     p.flush()
+    
+    # Check for batch mode
+    if "--batch" in sys.argv:
+        print("Batch mode: Finalizando después de una iteración.")
+        break
+        
     time.sleep(18)  # cada ~18 segundos todas las ciudades

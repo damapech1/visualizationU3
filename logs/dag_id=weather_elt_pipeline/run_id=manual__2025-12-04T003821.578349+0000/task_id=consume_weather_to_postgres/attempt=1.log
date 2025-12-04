@@ -1,0 +1,24 @@
+[2025-12-04T00:38:44.562+0000] {local_task_job_runner.py:120} INFO - ::group::Pre task execution logs
+[2025-12-04T00:38:44.654+0000] {taskinstance.py:2076} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: weather_elt_pipeline.consume_weather_to_postgres manual__2025-12-04T00:38:21.578349+00:00 [queued]>
+[2025-12-04T00:38:44.674+0000] {taskinstance.py:2076} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: weather_elt_pipeline.consume_weather_to_postgres manual__2025-12-04T00:38:21.578349+00:00 [queued]>
+[2025-12-04T00:38:44.675+0000] {taskinstance.py:2306} INFO - Starting attempt 1 of 2
+[2025-12-04T00:38:44.712+0000] {taskinstance.py:2330} INFO - Executing <Task(BashOperator): consume_weather_to_postgres> on 2025-12-04 00:38:21.578349+00:00
+[2025-12-04T00:38:44.728+0000] {standard_task_runner.py:63} INFO - Started process 282 to run task
+[2025-12-04T00:38:44.737+0000] {standard_task_runner.py:90} INFO - Running: ['airflow', 'tasks', 'run', 'weather_elt_pipeline', 'consume_weather_to_postgres', 'manual__2025-12-04T00:38:21.578349+00:00', '--job-id', '17', '--raw', '--subdir', 'DAGS_FOLDER/weather_elt_dag.py', '--cfg-path', '/tmp/tmp7da2ksfb']
+[2025-12-04T00:38:44.741+0000] {standard_task_runner.py:91} INFO - Job 17: Subtask consume_weather_to_postgres
+[2025-12-04T00:38:45.099+0000] {task_command.py:426} INFO - Running <TaskInstance: weather_elt_pipeline.consume_weather_to_postgres manual__2025-12-04T00:38:21.578349+00:00 [running]> on host 58daea5025c5
+[2025-12-04T00:38:45.319+0000] {taskinstance.py:2648} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='airflow' AIRFLOW_CTX_DAG_ID='weather_elt_pipeline' AIRFLOW_CTX_TASK_ID='consume_weather_to_postgres' AIRFLOW_CTX_EXECUTION_DATE='2025-12-04T00:38:21.578349+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='manual__2025-12-04T00:38:21.578349+00:00'
+[2025-12-04T00:38:45.327+0000] {taskinstance.py:430} INFO - ::endgroup::
+[2025-12-04T00:38:45.371+0000] {subprocess.py:63} INFO - Tmp dir root location: /tmp
+[2025-12-04T00:38:45.379+0000] {subprocess.py:75} INFO - Running command: ['/usr/bin/bash', '-c', 'python /opt/airflow/consumers/raw_to_postgres.py --batch']
+[2025-12-04T00:38:45.457+0000] {subprocess.py:86} INFO - Output:
+[2025-12-04T00:38:53.496+0000] {subprocess.py:93} INFO - Consumer → PostgreSQL iniciado
+[2025-12-04T00:38:53.498+0000] {subprocess.py:93} INFO - Batch mode: No hay mensajes, verificando timeout...
+[2025-12-04T00:38:53.499+0000] {subprocess.py:93} INFO - Batch mode: Timeout alcanzado, finalizando.
+[2025-12-04T00:38:53.546+0000] {subprocess.py:97} INFO - Command exited with return code 0
+[2025-12-04T00:38:53.550+0000] {taskinstance.py:441} INFO - ::group::Post task execution logs
+[2025-12-04T00:38:53.610+0000] {taskinstance.py:1206} INFO - Marking task as SUCCESS. dag_id=weather_elt_pipeline, task_id=consume_weather_to_postgres, run_id=manual__2025-12-04T00:38:21.578349+00:00, execution_date=20251204T003821, start_date=20251204T003844, end_date=20251204T003853
+[2025-12-04T00:38:53.673+0000] {local_task_job_runner.py:240} INFO - Task exited with return code 0
+[2025-12-04T00:38:53.708+0000] {logging_mixin.py:188} WARNING - /home/airflow/.local/lib/python3.10/site-packages/airflow/models/baseoperator.py:1296 AirflowProviderDeprecationWarning: Call to deprecated class PostgresOperator. (Please use `airflow.providers.common.sql.operators.sql.SQLExecuteQueryOperator`.Also, you can provide `hook_params={'schema': <database>}`.)
+[2025-12-04T00:38:53.729+0000] {taskinstance.py:3498} INFO - 1 downstream tasks scheduled from follow-on schedule check
+[2025-12-04T00:38:53.736+0000] {local_task_job_runner.py:222} INFO - ::endgroup::

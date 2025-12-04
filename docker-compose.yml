@@ -65,5 +65,68 @@ services:
     depends_on:
       - postgres
 
+  airflow-webserver:
+    build:
+      context: .
+      dockerfile: Dockerfile.airflow
+    container_name: airflow-webserver
+    command: bash -c "airflow db migrate && airflow users create --username airflow --firstname Airflow --lastname Admin --role Admin --email admin@example.com --password airflow || true && exec airflow webserver"
+    ports:
+      - "8081:8080"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 30s
+      retries: 5
+    restart: always
+    depends_on:
+      - postgres
+    env_file:
+      - .env
+    environment:
+      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://kafka_user:kafka123@postgres/weather_db
+      - AIRFLOW__CORE__FERNET_KEY=FB0o_zt4e3Zkke3IzXGWEFD4JELYbB94-5SPRr1g9O0=
+      - AIRFLOW__CORE__LOAD_EXAMPLES=False
+      - AIRFLOW_CONN_POSTGRES_DEFAULT=postgresql://kafka_user:kafka123@postgres:5432/weather_db
+      # Override for Docker internal networking
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+      - POSTGRES_HOST=postgres
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./logs:/opt/airflow/logs
+      - ./plugins:/opt/airflow/plugins
+      - ./producers:/opt/airflow/producers
+      - ./consumers:/opt/airflow/consumers
+      - ./data:/opt/airflow/data
+
+  airflow-scheduler:
+    build:
+      context: .
+      dockerfile: Dockerfile.airflow
+    container_name: airflow-scheduler
+    command: scheduler
+    restart: always
+    depends_on:
+      - airflow-webserver
+    env_file:
+      - .env
+    environment:
+      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://kafka_user:kafka123@postgres/weather_db
+      - AIRFLOW__CORE__FERNET_KEY=FB0o_zt4e3Zkke3IzXGWEFD4JELYbB94-5SPRr1g9O0=
+      - AIRFLOW__CORE__LOAD_EXAMPLES=False
+      - AIRFLOW_CONN_POSTGRES_DEFAULT=postgresql://kafka_user:kafka123@postgres:5432/weather_db
+      # Override for Docker internal networking
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+      - POSTGRES_HOST=postgres
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./logs:/opt/airflow/logs
+      - ./plugins:/opt/airflow/plugins
+      - ./producers:/opt/airflow/producers
+      - ./consumers:/opt/airflow/consumers
+      - ./data:/opt/airflow/data
+
 volumes:
   postgres_data:
