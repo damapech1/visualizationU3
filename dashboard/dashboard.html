@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Analytics Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --color-bg: #FAFAFA;
+            --color-card: #FFFFFF;
+            --color-text: #4A5568;
+            --color-text-light: #718096;
+            --color-border: #E2E8F0;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background-color: var(--color-bg);
+            color: var(--color-text);
+            line-height: 1.6;
+        }
+
+        .sidebar {
+            background-color: var(--color-card);
+            border-right: 1px solid var(--color-border);
+            padding: 24px;
+            position: fixed;
+            width: 220px;
+            height: 100vh;
+            overflow-y: auto;
+            left: 0;
+            top: 0;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 32px;
+        }
+
+        .logo svg {
+            width: 32px;
+            height: 32px;
+        }
+
+        .logo h1 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--color-text);
+        }
+
+        .filter-section {
+            margin-bottom: 20px;
+        }
+
+        .filter-section label {
+            display: block;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--color-text-light);
+            margin-bottom: 6px;
+        }
+
+        .filter-section select {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid var(--color-border);
+            border-radius: 6px;
+            font-size: 0.8rem;
+            color: var(--color-text);
+            background-color: var(--color-card);
+            cursor: pointer;
+        }
+
+        .filter-section select:focus {
+            outline: none;
+            border-color: #81C784;
+        }
+
+        .main-content {
+            margin-left: 220px;
+            padding: 24px;
+            min-height: 100vh;
+        }
+
+        .header {
+            margin-bottom: 24px;
+        }
+
+        .header h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--color-text);
+        }
+
+        .header p {
+            font-size: 0.85rem;
+            color: var(--color-text-light);
+            margin-top: 4px;
+        }
+
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .kpi-card {
+            background-color: var(--color-card);
+            border: 1px solid var(--color-border);
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .kpi-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 12px;
+        }
+
+        .kpi-icon svg {
+            width: 22px;
+            height: 22px;
+        }
+
+        .kpi-icon.green { background-color: #E8F5E9; }
+        .kpi-icon.blue { background-color: #E3F2FD; }
+        .kpi-icon.pink { background-color: #FCE4EC; }
+        .kpi-icon.yellow { background-color: #FFF8E1; }
+        .kpi-icon.purple { background-color: #F3E5F5; }
+        .kpi-icon.orange { background-color: #FFF3E0; }
+
+        .kpi-value {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--color-text);
+            line-height: 1.2;
+        }
+
+        .kpi-label {
+            font-size: 0.7rem;
+            color: var(--color-text-light);
+            margin-top: 4px;
+        }
+
+        .charts-row {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .charts-row-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .charts-row-3 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .chart-card {
+            background-color: var(--color-card);
+            border: 1px solid var(--color-border);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .chart-header {
+            margin-bottom: 16px;
+        }
+
+        .chart-header h3 {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--color-text);
+        }
+
+        .chart-container {
+            position: relative;
+            height: 260px;
+        }
+
+        .chart-container-lg {
+            position: relative;
+            height: 280px;
+        }
+
+        .chart-container-sm {
+            position: relative;
+            height: 220px;
+        }
+
+        @media (max-width: 1400px) {
+            .kpi-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            .charts-row-3 {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 1024px) {
+            .kpi-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .charts-row-2, .charts-row-3 {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                position: relative;
+                width: 100%;
+                height: auto;
+                border-right: none;
+                border-bottom: 1px solid var(--color-border);
+            }
+            .main-content {
+                margin-left: 0;
+            }
+            .kpi-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="logo">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#81C784" stroke-width="2">
+                <path d="M12 2v2m0 16v2M4 12H2m20 0h-2m-2.05-6.95l-1.41 1.41m-9.9 9.9l-1.41 1.41m0-12.72l1.41 1.41m9.9 9.9l1.41 1.41M12 7a5 5 0 100 10 5 5 0 000-10z"/>
+            </svg>
+            <h1>Weather Analytics</h1>
+        </div>
+
+        <div class="filter-section">
+            <label>Región</label>
+            <select id="filterRegion">
+                <option value="all">Todas las regiones</option>
+            </select>
+        </div>
+
+        <div class="filter-section">
+            <label>Ciudad</label>
+            <select id="filterCity">
+                <option value="all">Todas las ciudades</option>
+            </select>
+        </div>
+
+        <div class="filter-section">
+            <label>Segmento</label>
+            <select id="filterSegment">
+                <option value="all">Todos los segmentos</option>
+            </select>
+        </div>
+
+        <div class="filter-section">
+            <label>Período</label>
+            <select id="filterPeriod">
+                <option value="all">Todo el período</option>
+                <option value="7">Últimos 7 días</option>
+                <option value="3">Últimos 3 días</option>
+                <option value="1">Último día</option>
+            </select>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <div class="header">
+            <h2>Climate Overview</h2>
+            <p id="dataInfo">Cargando datos...</p>
+        </div>
+
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <div class="kpi-icon green">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#66BB6A" stroke-width="2">
+                        <path d="M14 14.76V3.5a2.5 2.5 0 00-5 0v11.26a4.5 4.5 0 105 0z"/>
+                    </svg>
+                </div>
+                <div class="kpi-value" id="kpiAvgTemp">--</div>
+                <div class="kpi-label">Average Temperature</div>
+            </div>
+
+            <div class="kpi-card">
+                <div class="kpi-icon pink">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#EC407A" stroke-width="2">
+                        <path d="M14 14.76V3.5a2.5 2.5 0 00-5 0v11.26a4.5 4.5 0 105 0z"/>
+                    </svg>
+                </div>
+                <div class="kpi-value" id="kpiMaxTemp">--</div>
+                <div class="kpi-label">Maximum Temperature</div>
+            </div>
+
+            <div class="kpi-card">
+                <div class="kpi-icon blue">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#42A5F5" stroke-width="2">
+                        <path d="M12 2.69l5.66 5.66a8 8 0 11-11.31 0z"/>
+                    </svg>
+                </div>
+                <div class="kpi-value" id="kpiHumidity">--</div>
+                <div class="kpi-label">Average Humidity</div>
+            </div>
+
+            <div class="kpi-card">
+                <div class="kpi-icon purple">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#AB47BC" stroke-width="2">
+                        <path d="M9.59 4.59A2 2 0 1111 8H2m10.59 11.41A2 2 0 1014 16H2m15.73-8.27A2.5 2.5 0 1119.5 12H2"/>
+                    </svg>
+                </div>
+                <div class="kpi-value" id="kpiWind">--</div>
+                <div class="kpi-label">Wind Speed (km/h)</div>
+            </div>
+
+            <div class="kpi-card">
+                <div class="kpi-icon yellow">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#FFA726" stroke-width="2">
+                        <path d="M18 10h-1.26A8 8 0 109 20h9a5 5 0 000-10z"/>
+                    </svg>
+                </div>
+                <div class="kpi-value" id="kpiCloud">--</div>
+                <div class="kpi-label">Cloud Cover</div>
+            </div>
+
+            <div class="kpi-card">
+                <div class="kpi-icon blue">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#29B6F6" stroke-width="2">
+                        <path d="M16 13v8M8 13v8M12 15v8M20 16.58A5 5 0 0018 7h-1.26A8 8 0 104 15.25"/>
+                    </svg>
+                </div>
+                <div class="kpi-value" id="kpiPrecip">--</div>
+                <div class="kpi-label">Total Precipitation</div>
+            </div>
+        </div>
+
+        <div class="charts-row">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3>Temperature Trend</h3>
+                </div>
+                <div class="chart-container-lg">
+                    <canvas id="chartTrend"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="charts-row-2">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3>Temperature by City</h3>
+                </div>
+                <div class="chart-container">
+                    <canvas id="chartCities"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3>Distribution by Region</h3>
+                </div>
+                <div class="chart-container">
+                    <canvas id="chartRegions"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="charts-row-2">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3>Wind Speed by City</h3>
+                </div>
+                <div class="chart-container">
+                    <canvas id="chartWind"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3>Precipitation by Region</h3>
+                </div>
+                <div class="chart-container">
+                    <canvas id="chartPrecip"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="charts-row-2">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3>Hourly Temperature Pattern</h3>
+                </div>
+                <div class="chart-container">
+                    <canvas id="chartHourly"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3>Temperature vs Humidity</h3>
+                </div>
+                <div class="chart-container">
+                    <canvas id="chartScatter"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="charts-row-3">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3>Humidity by City</h3>
+                </div>
+                <div class="chart-container-sm">
+                    <canvas id="chartHumidity"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3>Cloud Cover by Region</h3>
+                </div>
+                <div class="chart-container-sm">
+                    <canvas id="chartClouds"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3>Temperature Range by City</h3>
+                </div>
+                <div class="chart-container-sm">
+                    <canvas id="chartTempRange"></canvas>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let rawData = [];
+        let filteredData = [];
+        let charts = {};
+
+        // Extended color palette
+        const CITY_COLORS = [
+            '#EF5350', '#EC407A', '#AB47BC', '#7E57C2', '#5C6BC0',
+            '#42A5F5', '#29B6F6', '#26C6DA', '#26A69A', '#66BB6A',
+            '#9CCC65', '#D4E157', '#FFEE58', '#FFCA28', '#FFA726',
+            '#FF7043', '#8D6E63', '#78909C', '#F48FB1', '#CE93D8'
+        ];
+
+        const REGION_COLORS = {
+            'Centro': '#66BB6A',
+            'Norte': '#42A5F5',
+            'Sur': '#FFCA28',
+            'Sureste': '#EF5350',
+            'Occidente': '#AB47BC',
+            'Latam': '#26A69A',
+            'Europa': '#78909C',
+            'Norteamérica': '#5C6BC0'
+        };
+
+        async function loadData() {
+            try {
+                const response = await fetch('../data/weather_data.json');
+                rawData = await response.json();
+                initializeFilters();
+                applyFilters();
+            } catch (error) {
+                console.error('Error loading data:', error);
+                document.getElementById('dataInfo').textContent = 'Error al cargar datos';
+            }
+        }
+
+        function initializeFilters() {
+            const regions = [...new Set(rawData.map(d => d.region))].sort();
+            const cities = [...new Set(rawData.map(d => d.city))].sort();
+            const segments = [...new Set(rawData.map(d => d.segment))].sort();
+
+            populateSelect('filterRegion', regions, 'Todas las regiones');
+            populateSelect('filterCity', cities, 'Todas las ciudades');
+            populateSelect('filterSegment', segments, 'Todos los segmentos');
+
+            document.getElementById('filterRegion').addEventListener('change', applyFilters);
+            document.getElementById('filterCity').addEventListener('change', applyFilters);
+            document.getElementById('filterSegment').addEventListener('change', applyFilters);
+            document.getElementById('filterPeriod').addEventListener('change', applyFilters);
+        }
+
+        function populateSelect(id, options, defaultText) {
+            const select = document.getElementById(id);
+            select.innerHTML = `<option value="all">${defaultText}</option>`;
+            options.forEach(opt => {
+                select.innerHTML += `<option value="${opt}">${opt}</option>`;
+            });
+        }
+
+        function applyFilters() {
+            const region = document.getElementById('filterRegion').value;
+            const city = document.getElementById('filterCity').value;
+            const segment = document.getElementById('filterSegment').value;
+            const period = document.getElementById('filterPeriod').value;
+
+            filteredData = rawData.filter(d => {
+                if (region !== 'all' && d.region !== region) return false;
+                if (city !== 'all' && d.city !== city) return false;
+                if (segment !== 'all' && d.segment !== segment) return false;
+                
+                if (period !== 'all') {
+                    const days = parseInt(period);
+                    const cutoff = new Date();
+                    cutoff.setDate(cutoff.getDate() - days);
+                    if (new Date(d.timestamp) < cutoff) return false;
+                }
+                
+                return true;
+            });
+
+            updateDashboard();
+        }
+
+        function updateDashboard() {
+            updateKPIs();
+            updateCharts();
+            
+            const cities = [...new Set(filteredData.map(d => d.city))].length;
+            document.getElementById('dataInfo').textContent = 
+                `${filteredData.length.toLocaleString()} registros | ${cities} ciudades`;
+        }
+
+        function updateKPIs() {
+            if (filteredData.length === 0) return;
+            
+            const avgTemp = filteredData.reduce((sum, d) => sum + d.temperature_2m, 0) / filteredData.length;
+            const maxTemp = Math.max(...filteredData.map(d => d.temperature_2m));
+            const avgHumidity = filteredData.reduce((sum, d) => sum + d.relative_humidity_2m, 0) / filteredData.length;
+            const avgWind = filteredData.reduce((sum, d) => sum + d.wind_speed_kmh, 0) / filteredData.length;
+            const avgCloud = filteredData.reduce((sum, d) => sum + d.cloud_cover, 0) / filteredData.length;
+            const totalPrecip = filteredData.reduce((sum, d) => sum + (d.precipitation_mm || 0), 0);
+
+            document.getElementById('kpiAvgTemp').textContent = `${avgTemp.toFixed(1)}°C`;
+            document.getElementById('kpiMaxTemp').textContent = `${maxTemp.toFixed(1)}°C`;
+            document.getElementById('kpiHumidity').textContent = `${avgHumidity.toFixed(0)}%`;
+            document.getElementById('kpiWind').textContent = avgWind.toFixed(1);
+            document.getElementById('kpiCloud').textContent = `${avgCloud.toFixed(0)}%`;
+            document.getElementById('kpiPrecip').textContent = `${totalPrecip.toFixed(1)} mm`;
+        }
+
+        function updateCharts() {
+            updateTrendChart();
+            updateCitiesChart();
+            updateRegionsChart();
+            updateWindChart();
+            updatePrecipChart();
+            updateHourlyChart();
+            updateScatterChart();
+            updateHumidityChart();
+            updateCloudsChart();
+            updateTempRangeChart();
+        }
+
+        function updateTrendChart() {
+            const dailyData = {};
+            filteredData.forEach(d => {
+                const date = d.timestamp.split('T')[0];
+                if (!dailyData[date]) dailyData[date] = { sum: 0, count: 0 };
+                dailyData[date].sum += d.temperature_2m;
+                dailyData[date].count++;
+            });
+
+            const labels = Object.keys(dailyData).sort();
+            const data = labels.map(date => (dailyData[date].sum / dailyData[date].count).toFixed(1));
+
+            if (charts.trend) charts.trend.destroy();
+            
+            charts.trend = new Chart(document.getElementById('chartTrend'), {
+                type: 'line',
+                data: {
+                    labels: labels.map(d => d.slice(5)),
+                    datasets: [{
+                        label: 'Temperature',
+                        data: data,
+                        borderColor: '#66BB6A',
+                        backgroundColor: '#66BB6A20',
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 4,
+                        pointBackgroundColor: '#66BB6A'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { grid: { color: '#E2E8F0' }, ticks: { callback: v => v + '°C' } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        }
+
+        function updateCitiesChart() {
+            const cityData = {};
+            filteredData.forEach(d => {
+                if (!cityData[d.city]) cityData[d.city] = { sum: 0, count: 0 };
+                cityData[d.city].sum += d.temperature_2m;
+                cityData[d.city].count++;
+            });
+
+            const sorted = Object.entries(cityData)
+                .map(([city, data]) => ({ city, avg: data.sum / data.count }))
+                .sort((a, b) => b.avg - a.avg);
+
+            if (charts.cities) charts.cities.destroy();
+
+            charts.cities = new Chart(document.getElementById('chartCities'), {
+                type: 'bar',
+                data: {
+                    labels: sorted.map(d => d.city),
+                    datasets: [{
+                        data: sorted.map(d => d.avg.toFixed(1)),
+                        backgroundColor: sorted.map((_, i) => CITY_COLORS[i % CITY_COLORS.length]),
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { grid: { color: '#E2E8F0' }, ticks: { callback: v => v + '°C' } },
+                        y: { grid: { display: false } }
+                    }
+                }
+            });
+        }
+
+        function updateRegionsChart() {
+            const regionData = {};
+            filteredData.forEach(d => {
+                regionData[d.region] = (regionData[d.region] || 0) + 1;
+            });
+
+            const labels = Object.keys(regionData);
+            const data = Object.values(regionData);
+            const colors = labels.map((r, i) => REGION_COLORS[r] || CITY_COLORS[i]);
+
+            if (charts.regions) charts.regions.destroy();
+
+            charts.regions = new Chart(document.getElementById('chartRegions'), {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: colors,
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '60%',
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: { boxWidth: 12, padding: 16 }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateWindChart() {
+            const cityData = {};
+            filteredData.forEach(d => {
+                if (!cityData[d.city]) cityData[d.city] = { sum: 0, count: 0 };
+                cityData[d.city].sum += d.wind_speed_kmh;
+                cityData[d.city].count++;
+            });
+
+            const sorted = Object.entries(cityData)
+                .map(([city, data]) => ({ city, avg: data.sum / data.count }))
+                .sort((a, b) => b.avg - a.avg);
+
+            if (charts.wind) charts.wind.destroy();
+
+            charts.wind = new Chart(document.getElementById('chartWind'), {
+                type: 'bar',
+                data: {
+                    labels: sorted.map(d => d.city),
+                    datasets: [{
+                        data: sorted.map(d => d.avg.toFixed(1)),
+                        backgroundColor: sorted.map((_, i) => CITY_COLORS[(i + 5) % CITY_COLORS.length]),
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { grid: { color: '#E2E8F0' }, ticks: { callback: v => v + ' km/h' } },
+                        y: { grid: { display: false } }
+                    }
+                }
+            });
+        }
+
+        function updatePrecipChart() {
+            const regionData = {};
+            filteredData.forEach(d => {
+                if (!regionData[d.region]) regionData[d.region] = 0;
+                regionData[d.region] += d.precipitation_mm || 0;
+            });
+
+            const labels = Object.keys(regionData);
+            const data = Object.values(regionData);
+            const colors = labels.map((r, i) => REGION_COLORS[r] || CITY_COLORS[i]);
+
+            if (charts.precip) charts.precip.destroy();
+
+            charts.precip = new Chart(document.getElementById('chartPrecip'), {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data.map(v => v.toFixed(1)),
+                        backgroundColor: colors,
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { grid: { color: '#E2E8F0' }, ticks: { callback: v => v + ' mm' } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        }
+
+        function updateHourlyChart() {
+            const hourlyData = {};
+            filteredData.forEach(d => {
+                const hour = new Date(d.timestamp).getHours();
+                if (!hourlyData[hour]) hourlyData[hour] = { sum: 0, count: 0 };
+                hourlyData[hour].sum += d.temperature_2m;
+                hourlyData[hour].count++;
+            });
+
+            const labels = Array.from({ length: 24 }, (_, i) => `${i}:00`);
+            const data = labels.map((_, i) => 
+                hourlyData[i] ? (hourlyData[i].sum / hourlyData[i].count).toFixed(1) : null
+            );
+
+            if (charts.hourly) charts.hourly.destroy();
+
+            charts.hourly = new Chart(document.getElementById('chartHourly'), {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        borderColor: '#AB47BC',
+                        backgroundColor: '#AB47BC20',
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { grid: { color: '#E2E8F0' }, ticks: { callback: v => v + '°C' } },
+                        x: { grid: { display: false }, ticks: { maxTicksLimit: 8 } }
+                    }
+                }
+            });
+        }
+
+        function updateScatterChart() {
+            const scatterData = filteredData.slice(0, 500).map(d => ({
+                x: d.temperature_2m,
+                y: d.relative_humidity_2m,
+                region: d.region
+            }));
+
+            const datasets = {};
+            scatterData.forEach(d => {
+                if (!datasets[d.region]) {
+                    const color = REGION_COLORS[d.region] || '#66BB6A';
+                    datasets[d.region] = {
+                        label: d.region,
+                        data: [],
+                        backgroundColor: color + '99',
+                        borderColor: color,
+                        borderWidth: 1
+                    };
+                }
+                datasets[d.region].data.push({ x: d.x, y: d.y });
+            });
+
+            if (charts.scatter) charts.scatter.destroy();
+
+            charts.scatter = new Chart(document.getElementById('chartScatter'), {
+                type: 'scatter',
+                data: { datasets: Object.values(datasets) },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: { boxWidth: 8, padding: 10 }
+                        }
+                    },
+                    scales: {
+                        x: { title: { display: true, text: 'Temperature (°C)' }, grid: { color: '#E2E8F0' } },
+                        y: { title: { display: true, text: 'Humidity (%)' }, grid: { color: '#E2E8F0' } }
+                    }
+                }
+            });
+        }
+
+        function updateHumidityChart() {
+            const cityData = {};
+            filteredData.forEach(d => {
+                if (!cityData[d.city]) cityData[d.city] = { sum: 0, count: 0 };
+                cityData[d.city].sum += d.relative_humidity_2m;
+                cityData[d.city].count++;
+            });
+
+            const sorted = Object.entries(cityData)
+                .map(([city, data]) => ({ city, avg: data.sum / data.count }))
+                .sort((a, b) => b.avg - a.avg)
+                .slice(0, 8);
+
+            if (charts.humidity) charts.humidity.destroy();
+
+            charts.humidity = new Chart(document.getElementById('chartHumidity'), {
+                type: 'bar',
+                data: {
+                    labels: sorted.map(d => d.city),
+                    datasets: [{
+                        data: sorted.map(d => d.avg.toFixed(0)),
+                        backgroundColor: sorted.map((_, i) => CITY_COLORS[(i + 2) % CITY_COLORS.length]),
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { grid: { color: '#E2E8F0' }, ticks: { callback: v => v + '%' } },
+                        x: { grid: { display: false }, ticks: { maxRotation: 45 } }
+                    }
+                }
+            });
+        }
+
+        function updateCloudsChart() {
+            const regionData = {};
+            filteredData.forEach(d => {
+                if (!regionData[d.region]) regionData[d.region] = { sum: 0, count: 0 };
+                regionData[d.region].sum += d.cloud_cover;
+                regionData[d.region].count++;
+            });
+
+            const labels = Object.keys(regionData);
+            const data = labels.map(r => (regionData[r].sum / regionData[r].count).toFixed(0));
+            const colors = labels.map((r, i) => REGION_COLORS[r] || CITY_COLORS[i]);
+
+            if (charts.clouds) charts.clouds.destroy();
+
+            charts.clouds = new Chart(document.getElementById('chartClouds'), {
+                type: 'polarArea',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: colors.map(c => c + '99'),
+                        borderColor: colors,
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: { boxWidth: 10, padding: 8 }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateTempRangeChart() {
+            const cityData = {};
+            filteredData.forEach(d => {
+                if (!cityData[d.city]) cityData[d.city] = { min: Infinity, max: -Infinity };
+                cityData[d.city].min = Math.min(cityData[d.city].min, d.temperature_2m);
+                cityData[d.city].max = Math.max(cityData[d.city].max, d.temperature_2m);
+            });
+
+            const cities = Object.keys(cityData).slice(0, 8);
+            const minData = cities.map(c => cityData[c].min.toFixed(1));
+            const maxData = cities.map(c => cityData[c].max.toFixed(1));
+
+            if (charts.tempRange) charts.tempRange.destroy();
+
+            charts.tempRange = new Chart(document.getElementById('chartTempRange'), {
+                type: 'bar',
+                data: {
+                    labels: cities,
+                    datasets: [
+                        {
+                            label: 'Min',
+                            data: minData,
+                            backgroundColor: '#42A5F5',
+                            borderRadius: 4
+                        },
+                        {
+                            label: 'Max',
+                            data: maxData,
+                            backgroundColor: '#EF5350',
+                            borderRadius: 4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: { boxWidth: 10, padding: 8 }
+                        }
+                    },
+                    scales: {
+                        y: { grid: { color: '#E2E8F0' }, ticks: { callback: v => v + '°C' } },
+                        x: { grid: { display: false }, ticks: { maxRotation: 45 } }
+                    }
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', loadData);
+    </script>
+</body>
+</html>
