@@ -2727,6 +2727,15 @@ Para preguntas, issues o sugerencias:
 - **pgAdmin**: https://www.pgadmin.org/docs/
 - **DBeaver**: https://dbeaver.io/ (alternativa a pgAdmin)
 
+### Team members:
+- Chan Pech Francisco
+- Lopez Tzec Isaias de Jesus
+- Murguia Ortiz Joaquin
+- Pech Aque Damaris
+- Ramirez Romero Ana Paula
+- Paredes Dzib Valeria
+- Sandoval Cambranis Krishna
+
 ---
 
 **Última actualización**: Diciembre 2025
